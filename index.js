@@ -4,10 +4,20 @@ const admin = require('firebase-admin');
 const path = require('path');
 
 const app = express();
-app.use(cors());
+const corsOptions = {
+    origin: [
+        'https://scholar-hub-backend.vercel.app',
+        /\.vercel\.app$/,
+        'http://localhost:5173',
+        'http://localhost:3000',
+    ],
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 // allow preflight for all routes
-app.options('*', cors());
+app.options('*', cors(corsOptions));
 
 // Initialize Firebase Admin with Service Account
 // You must download your service account JSON from Firebase Console -> Project Settings -> Service Accounts
@@ -167,7 +177,13 @@ app.get('/', (req, res) => {
     res.send('<h1>Admin backend running</h1><p>Available endpoints:<ul><li>POST /createStudent</li><li>GET /health</li></ul></p>')
 })
 
-const PORT = 3001;
-app.listen(PORT, () => {
-    console.log(`Admin backend running on http://localhost:${PORT}`);
-});
+// Export for Vercel serverless
+module.exports = app;
+
+// Local dev only
+if (require.main === module) {
+    const PORT = 3001;
+    app.listen(PORT, () => {
+        console.log(`Admin backend running on http://localhost:${PORT}`);
+    });
+}
