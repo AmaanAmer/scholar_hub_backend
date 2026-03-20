@@ -19,18 +19,23 @@ app.use(express.json());
 // allow preflight for all routes
 app.options('*', cors(corsOptions));
 
-// Initialize Firebase Admin with Service Account
-// You must download your service account JSON from Firebase Console -> Project Settings -> Service Accounts
-const serviceAccountPath = path.join(__dirname, 'service-account.json');
-
+// Initialize Firebase Admin
+// On Vercel: set FIREBASE_SERVICE_ACCOUNT_JSON env var to the full service account JSON string
+// Locally: place service-account.json in this directory
 try {
-    const serviceAccount = require(serviceAccountPath);
+    let serviceAccount;
+    if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+        serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+    } else {
+        const serviceAccountPath = path.join(__dirname, 'service-account.json');
+        serviceAccount = require(serviceAccountPath);
+    }
     admin.initializeApp({
         credential: admin.credential.cert(serviceAccount)
     });
-    console.log('Firebase Admin initialized with service account.');
+    console.log('Firebase Admin initialized.');
 } catch (err) {
-    console.error('ERROR: Missing server/service-account.json! Please download it from Firebase Console.');
+    console.error('ERROR: Firebase Admin init failed. Set FIREBASE_SERVICE_ACCOUNT_JSON env var or place service-account.json locally.', err?.message);
 }
 
 const db = admin.firestore();
