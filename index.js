@@ -71,6 +71,7 @@ app.post('/createStudent', ensureAdminInitialized, async (req, res) => {
             email,
             password,
             displayName: name,
+            emailVerified: true,
         });
 
         // 2. Create Profile in Firestore
@@ -113,7 +114,7 @@ app.post('/createStudent', ensureAdminInitialized, async (req, res) => {
                 // If admin provided a password, update the existing Auth user to set that password
                 if (password) {
                     try {
-                        await admin.auth().updateUser(uid, { password });
+                        await admin.auth().updateUser(uid, { password, emailVerified: true });
                     } catch (pwErr) {
                         console.warn('Could not update password for existing user:', pwErr && pwErr.message ? pwErr.message : pwErr);
                     }
